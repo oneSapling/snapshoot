@@ -19,13 +19,14 @@ import (
 // Directory containing all the test files
 const testDir = "test_data"
 
-// Read the topology from a ".top" file.
-// The expected format of the file is as follows:
-// 	- The first line contains number of servers N (e.g. "2")
+// Read the topology（拓扑结构） from a ".top" file.
+// The expected format of the file is as follows:（文件的预期格式是如下形式的）
+// 	- The first line contains number of servers N (e.g. "2")第一行包含了几个sever的数
 // 	- The next N lines each contains the server ID and the number of tokens on
-// 	  that server, in the form "[serverId] [numTokens]" (e.g. "N1 1")
-// 	- The rest of the lines represent unidirectional links in the form "[src dst]"
-// 	  (e.g. "N1 N2")
+// 	  that server, in the form "[serverId] [numTokens]" (e.g. "N1 1")（e.g. 比如）
+// 	- The rest of the lines represent unidirectional links in the form "[src dst]" (e.g. "N1 N2")
+//  -  剩下的行表示单向传播(e.g. "N1 N2")
+//readTopology 读取拓扑结构
 func readTopology(fileName string, sim *Simulator) {
 	b, err := ioutil.ReadFile(path.Join(testDir, fileName))
 	checkError(err)
@@ -67,14 +68,18 @@ func readTopology(fileName string, sim *Simulator) {
 	}
 }
 
-// Read the events from a ".events" file and inject the events into the simulator.
+// Read the events from a ".events" file and
+// inject the events into the simulator. 把事件注入到模拟器中
 // The expected format of the file is as follows:
-// 	- "tick N" indicates N time steps has elapsed (default N = 1)
-// 	- "send N1 N2 1" indicates that N1 sends 1 token to N2
-// 	- "snapshot N2" indicates the beginning of the snapshot process, starting on N2
-// Note that concurrent events are indicated by the lack of ticks between the events.
-// This function waits until all the snapshot processes have terminated before returning
-// the snapshots collected.
+// - "tick N" indicates N time steps has elapsed (default N = 1) 按时已经走了N步了
+//     标记号 N
+// - "send N1 N2 1" indicates that N1 sends 1 token to N2
+// - "snapshot N2" indicates
+// the beginning of the snapshot process , starting on N2（快照过程的开始，从 N2 开始）
+// Note that concurrent events are indicated by（表示了） the lack of ticks between the events.
+// 请注意，并发事件由事件之间缺少节拍表示。
+// This function waits until all the snapshot processes have terminated before returning the snapshots collected.
+//  这个函数等待所有的快照进程终止才收集快照信息
 func injectEvents(fileName string, sim *Simulator) []*SnapshotState {
 	b, err := ioutil.ReadFile(path.Join(testDir, fileName))
 	checkError(err)
@@ -292,8 +297,8 @@ func sortSnapshots(snaps []*SnapshotState) {
 	})
 }
 
-// Verify that the total number of tokens recorded in the snapshot preserves
-// the number of tokens in the system
+// Verify that the total number of tokens recorded in the snapshot
+// preserves（保存） the number of tokens in the system
 func checkTokens(sim *Simulator, snapshots []*SnapshotState) {
 	expectedTokens := 0
 	for _, server := range sim.servers {

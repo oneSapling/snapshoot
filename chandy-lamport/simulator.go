@@ -5,19 +5,22 @@ import (
 	"math/rand"
 )
 
-// Max random delay added to packet delivery
+// Max random delay added to packet delivery 传送包的最大延迟
 const maxDelay = 5
 
 // Simulator is the entry point to the distributed snapshot application.
-//
-// It is a discrete time simulator, i.e. events that happen at time t + 1 come
-// strictly after events that happen at time t. At each time step, the simulator
+// 模拟器是分布式快照程序的入口点
+// It is a discrete time simulator, 它是一个离散的时间模拟器
+// i.e. events that happen at time t + 1 come strictly after events that happen at time t.
+// 也就是说t+1时刻的时间紧跟着t时刻的时间
+// At each time step, the simulator检查所有信道上排队的消息然后决定哪一个发送去目的地
 // examines messages queued up across all the links in the system and decides
 // which ones to deliver to the destination.
-//
+
+//	模拟器负责开始快照进程，并引导severs去相互传递令牌，并且手机快照结束以后的快照状态
 // The simulator is responsible for starting the snapshot process, inducing servers
-// to pass tokens to each other, and collecting the snapshot state after the process
-// has terminated.
+// to pass tokens to each other, and collecting the snapshot state after the process has terminated.
+
 type Simulator struct {
 	time           int
 	nextSnapshotId int

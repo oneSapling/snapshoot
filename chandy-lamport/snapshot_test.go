@@ -3,6 +3,7 @@ package chandy_lamport
 import (
 	"fmt"
 	"math/rand"
+	"strconv"
 	"testing"
 )
 
@@ -14,34 +15,37 @@ func runTest(t *testing.T, topFile string, eventsFile string, snapFiles []string
 	}
 	fmt.Println(startMessage)
 
-	// Initialize simulator
-	rand.Seed(8053172852482175524)
-	sim := NewSimulator()
-	readTopology(topFile, sim)
+	// Initialize simulator (初始化模拟器)
+	rand.Seed(8053172852482175524)//Seed使用提供的seed值将发生器初始化为确定性状态
+	sim := NewSimulator() //创建一个模拟器
+	readTopology(topFile, sim) //读取拓扑结构
 	actualSnaps := injectEvents(eventsFile, sim)
 	if len(actualSnaps) != len(snapFiles) {
 		t.Fatalf("Expected %v snapshot(s), got %v\n", len(snapFiles), len(actualSnaps))
 	}
-	// Optionally print events for debugging
+	// Optionally print events for debugging 可选择的打印调试事件
 	if debug {
 		sim.logger.PrettyPrint()
 		fmt.Println()
 	}
 	// Verify that the number of tokens are preserved in the snapshots
+	//确认快照中保留了令牌的数量
 	checkTokens(sim, actualSnaps)
 	// Verify against golden files
-	expectedSnaps := make([]*SnapshotState, 0)
+	// 和golden files核对一下
+	expectedSnaps := make([]*SnapshotState, 0) //预期的快照
 	for _, snapFile := range snapFiles {
 		expectedSnaps = append(expectedSnaps, readSnapshot(snapFile))
 	}
+
 	sortSnapshots(actualSnaps)
 	sortSnapshots(expectedSnaps)
 	for i := 0; i < len(actualSnaps); i++ {
 		assertEqual(expectedSnaps[i], actualSnaps[i])
 	}
 }
-
-func Test2NodesSimple(t *testing.T) {
+//t *testing.T是一个测试类 go test -run +类名可以运行
+func Test2Nodes(t *testing.T) {
 	runTest(t, "2nodes.top", "2nodes-simple.events", []string{"2nodes-simple.snap"})
 }
 
@@ -103,4 +107,14 @@ func Test10NodesDirectedEdges(t *testing.T) {
 			"10nodes8.snap",
 			"10nodes9.snap",
 		})
+}
+//-------------------------------------------------------
+func gotest(i string,string string){
+	fmt.Println("{"+i+"},"+string);
+}
+
+func TestZs(t *testing.T){
+	fmt.Println("Test")
+	//randint := 100
+	gotest("1",strconv.Itoa(rand.Intn(100)))
 }
