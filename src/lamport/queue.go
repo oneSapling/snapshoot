@@ -1,4 +1,4 @@
-package chandy_lamport
+package lamport
 
 import "container/list"
 
@@ -17,6 +17,9 @@ func (q *Queue) Empty() bool {
 
 func (q *Queue) Push(v interface{}) {
 	q.elements.PushFront(v)
+}
+func (q *Queue) pop() {
+
 }
 
 func (q *Queue) Pop() interface{} {

@@ -1,4 +1,4 @@
-package chandy_lamport
+package lamport
 
 import (
 	"fmt"
@@ -15,9 +15,9 @@ type Logger struct {
 	events [][]LogEvent
 }
 
-type LogEvent struct {
+type LogEvent struct { //server.Id, server.Tokens, event
 	serverId string
-	// Number of tokens before execution of event
+	// Number of tokens before execution of event执行事件前的tokens
 	serverTokens int
 	event        interface{}
 }
@@ -68,11 +68,23 @@ func (log *Logger) PrettyPrint() {
 
 func (log *Logger) NewEpoch() {
 	log.events = append(log.events, make([]LogEvent, 0))
+	//time step and events
 }
 
 func (logger *Logger) RecordEvent(server *Server, event interface{}) {
-	mostRecent := len(logger.events) - 1
+	//参数 例 (server, SentMessageEvent{server.Id, dest, message})
+	// index = time step
+	// value = events that occurred at that time step
+	//events [][]LogEvent
+	mostRecent := len(logger.events) - 1  //logger中的enents事件
 	events := logger.events[mostRecent]
 	events = append(events, LogEvent{server.Id, server.Tokens, event})
+	/*
+	LogEvent中的字段
+	serverId string
+	serverTokens int 执行事件前的tokens
+	event        interface{}
+	*/
 	logger.events[mostRecent] = events
+	log.Printf("已经记录下了事件\n , %v \n",events)
 }

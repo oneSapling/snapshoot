@@ -1,13 +1,14 @@
 COS418作业2：Chandy-Lamport分布式快照
 介绍
-在此分配中，您将为分布式快照实现 Chandy-Lamport算法。您的快照算法将在令牌传递系统的顶部实现，类似于precept和Chandy-Lamport论文中介绍的系统。
+在此分配中，您将为分布式快照实现 Chandy-Lamport算法。
+您的快照算法将在令牌传递系统的顶部实现，类似于precept和Chandy-Lamport论文中介绍的系统。
 
 该算法进行以下假设：
 
 没有失败，所有消息都完整无缺地到达了一次
 通信通道为单向且FIFO排序 (先进先出)
 系统中任何两个进程之间都有一条通信路径
-任何过程都可以启动快照算法
+任何进程都可以启动快照算法
 快照算法不会干扰进程的正常执行
 系统中的每个进程都记录其本地状态和传入通道的状态
 软件
@@ -17,7 +18,7 @@ server.go：分布式算法中的进程
 simulator.go：离散时间仿真器
 logger.go：一个记录器，记录由系统执行的事件（用于调试）
 common.go：服务器，记录器和模拟器中使用的调试标志和常见消息类型
-snapshot_test.go：您需要通过的测试
+snapshot_test.go：测试
 syncmap.go：线程安全映射的实现（同步的map）
 queue.go：使用Go中的列表实现的简单队列接口 
 test_common.go：用于测试的辅助函数

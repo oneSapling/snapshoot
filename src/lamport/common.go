@@ -1,4 +1,4 @@
-package chandy_lamport
+package lamport
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"sort"
 )
 
-const debug = false
+const debug = true
 
 // ====================================
 //  Messages exchanged between servers
@@ -24,7 +24,7 @@ type SendMessageEvent struct {
 }
 
 // A message sent from one server to another for token passing.
-// This is expected to be encapsulated within a `sendMessageEvent`.
+// This is expected to be encapsulated(封装) within a `sendMessageEvent`.
 type TokenMessage struct {
 	numTokens int
 }
@@ -58,11 +58,11 @@ type ReceivedMessageEvent struct {
 func (m ReceivedMessageEvent) String() string {
 	switch msg := m.message.(type) {
 	case TokenMessage:
-		return fmt.Sprintf("%v received %v tokens from %v", m.dest, msg.numTokens, m.src)
+		return fmt.Sprintf("{ %v received %v tokens from %v }", m.dest, msg.numTokens, m.src)
 	case MarkerMessage:
-		return fmt.Sprintf("%v received marker(%v) from %v", m.dest, msg.snapshotId, m.src)
+		return fmt.Sprintf("{ %v received marker(%v) from %v }", m.dest, msg.snapshotId, m.src)
 	}
-	return fmt.Sprintf("Unrecognized message: %v", m.message)
+	return fmt.Sprintf("{ Unrecognized message: %v }", m.message)
 }
 
 // A message that signifies sending of a message on a particular server
@@ -76,11 +76,11 @@ type SentMessageEvent struct {
 func (m SentMessageEvent) String() string {
 	switch msg := m.message.(type) {
 	case TokenMessage:
-		return fmt.Sprintf("%v sent %v tokens to %v", m.src, msg.numTokens, m.dest)
+		return fmt.Sprintf("%v sent %v tokens to %v \n", m.src, msg.numTokens, m.dest)
 	case MarkerMessage:
-		return fmt.Sprintf("%v sent marker(%v) to %v", m.src, msg.snapshotId, m.dest)
+		return fmt.Sprintf("%v sent marker(%v) to %v \n", m.src, msg.snapshotId, m.dest)
 	}
-	return fmt.Sprintf("Unrecognized message: %v", m.message)
+	return fmt.Sprintf("Unrecognized message: %v \n", m.message)
 }
 
 // A message that signifies the beginning of the snapshot process on a particular server.
@@ -102,35 +102,35 @@ type EndSnapshot struct {
 }
 
 func (m EndSnapshot) String() string {
-	return fmt.Sprintf("%v endSnapshot(%v)", m.serverId, m.snapshotId)
+	return fmt.Sprintf("%v 服务器结束了快照(%v)", m.serverId, m.snapshotId)
 }
 
 // ================================================
 //  Events injected to the system by the simulator
 // ================================================
 
-// An event parsed from the .event files that represent the passing of tokens
-// from one server to another
+// An event parsed解析 from the .event files that represent（代表）
+// the passing of tokens from one server to another（把一个令牌从一个服务器发送到另一个服务器）
 type PassTokenEvent struct {
 	src    string
 	dest   string
 	tokens int
 }
 
-// An event parsed from the .event files that represent the initiation of the
-// chandy-lamport snapshot algorithm
+// An event parsed from the .event files that represent
+// the initiation（初始化） of the chandy-lamport snapshot algorithm
 type SnapshotEvent struct {
 	serverId string
 }
 
-// A message recorded during the snapshot process
+// A message recorded（记录） during the snapshot process
+//这里的SnapshotMessage和SnapshotState需要搭配使用
 type SnapshotMessage struct {
-	src     string
-	dest    string
-	message interface{}
+	src     string  //源头
+	dest    string  //目的地
+	message interface{}  //这里可能会出现两种情况 例如：TokenMessage{numTokens} 和 MarkerMessage{snapshotId}
 }
 
-// State recorded during the snapshot process
 type SnapshotState struct {
 	id       int
 	tokens   map[string]int // key = server ID, value = num tokens
@@ -138,18 +138,19 @@ type SnapshotState struct {
 }
 
 // =====================
-//  Misc helper methods
+// 可用到的辅助方法
 // =====================
 
 // If the error is not nil, terminate
 func checkError(err error) {
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("================ err",err)
 	}
 }
 
-// Return the keys of the given map in sorted order.
+// Return the keys of the given map in sorted order.按顺序返回给定映射的键
 // Note: The argument passed in MUST be a map, otherwise an error will be thrown.
+//传入的参数必须是 map，否则将抛出错误
 func getSortedKeys(m interface{}) []string {
 	v := reflect.ValueOf(m)
 	if v.Kind() != reflect.Map {

@@ -1,4 +1,4 @@
-package chandy_lamport
+package lamport
 
 import "sync"
 
@@ -7,6 +7,12 @@ import "sync"
 // which is introduced in Go 1.9+ but not available before that.
 // This provides a simplified version of the same class without
 // requiring the user to upgrade their Go installation.
+
+	//同步读写访问的映射的实现。
+	//注意:这个类特意采用了sync.Map接口，
+	//这是在Go 1.9+ 中引入的 , 但在此之前是不可用的。
+	//这提供了同一个类的简化版本
+	//要求用户升级他们的Go安装。
 type SyncMap struct {
 	internalMap map[interface{}]interface{}
 	lock        sync.RWMutex

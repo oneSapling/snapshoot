@@ -1,4 +1,4 @@
-package chandy_lamport
+package lamport
 
 import (
 	"fmt"
@@ -26,42 +26,53 @@ const testDir = "test_data"
 // 	  that server, in the form "[serverId] [numTokens]" (e.g. "N1 1")（e.g. 比如）
 // 	- The rest of the lines represent unidirectional links in the form "[src dst]" (e.g. "N1 N2")
 //  -  剩下的行表示单向传播(e.g. "N1 N2")
-//readTopology 读取拓扑结构
+//2
+//n1 1 [serverId] [numTokens]
+//n2 2
+//n1 n2 单向传播
+//n1 n2
+
+//readTopology 读取拓扑结构（参数为 模拟器 和 .top文件）
 func readTopology(fileName string, sim *Simulator) {
 	b, err := ioutil.ReadFile(path.Join(testDir, fileName))
 	checkError(err)
-	lines := strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' })
+	lines := strings.FieldsFunc( //FieldsFunc把b按照 \n 分隔开
+		string(b),
+		func(r rune) bool {
+			return r == '\n'
+		})
 
 	// Must call this before we start logging
 	sim.logger.NewEpoch()
 
-	// Parse topology from lines
+	// Parse topology(拓扑) from lines
 	numServersLeft := -1
 	for _, line := range lines {
-		// Ignore comments
-		if strings.HasPrefix(line, "#") {
+		// Ignore 忽视    comments 评论
+		fmt.Println("{ top文件的每一行"+line+" }")
+		if strings.HasPrefix(line, "#") {  //判断这一行是否以prefix开头
 			continue
 		}
 		if numServersLeft < 0 {
-			numServersLeft, err = strconv.Atoi(line)
+			numServersLeft, err = strconv.Atoi(line) //字符串转换为数字
 			checkError(err)
 			continue
 		}
-		// Otherwise, always expect 2 tokens
-		parts := strings.Fields(line)
+		// Otherwise, always expect（期望） 2 tokens
+		parts := strings.Fields(line) //以空白字符切分这一行的字符串
 		if len(parts) != 2 {
 			log.Fatal("Expected 2 tokens in line: ", line)
 		}
-		if numServersLeft > 0 {
+		if numServersLeft > 0 { // severid 和token数的读取
 			// This is a server
 			serverId := parts[0]
 			numTokens, err := strconv.Atoi(parts[1])
 			checkError(err)
-			sim.AddServer(serverId, numTokens)
+			sim.AddServer(serverId, numTokens) //模拟器添加一个服务器
 			numServersLeft--
-		} else {
+		} else { //遍历最后两行
 			// This is a link
-			src := parts[0]
+			src := parts[0] //遍历发送
 			dest := parts[1]
 			sim.AddForwardLink(src, dest)
 		}
@@ -70,36 +81,45 @@ func readTopology(fileName string, sim *Simulator) {
 
 // Read the events from a ".events" file and
 // inject the events into the simulator. 把事件注入到模拟器中
-// The expected format of the file is as follows:
-// - "tick N" indicates N time steps has elapsed (default N = 1) 按时已经走了N步了
+// The expected(预期) format of the file is as follows:
+// - "tick N" indicates（表示） N time steps has elapsed（运行） (default N = 1)
 //     标记号 N
 // - "send N1 N2 1" indicates that N1 sends 1 token to N2
 // - "snapshot N2" indicates
 // the beginning of the snapshot process , starting on N2（快照过程的开始，从 N2 开始）
-// Note that concurrent events are indicated by（表示了） the lack of ticks between the events.
-// 请注意，并发事件由事件之间缺少节拍表示。
+// Note that concurrent（并发） events are indicated by（表示了） the lack of ticks between the events.
+// 请注意，并发事件由事件之间缺少点
 // This function waits until all the snapshot processes have terminated before returning the snapshots collected.
 //  这个函数等待所有的快照进程终止才收集快照信息
+//
+//send N1 N2 1
+//snapshot N2 快照过程的开始，从 N2 开始
+//tick default N = 1
+//读取 .events文件 的内容并把事件注入到模拟器中
+
 func injectEvents(fileName string, sim *Simulator) []*SnapshotState {
+	//path的join函数构造路径
 	b, err := ioutil.ReadFile(path.Join(testDir, fileName))
 	checkError(err)
 
-	snapshots := make([]*SnapshotState, 0)
-	getSnapshots := make(chan *SnapshotState, 100)
-	numSnapshots := 0
+	snapshots := make([]*SnapshotState, 0) //初始化一个[]*SnapshotState的切片
+	getSnapshots := make(chan *SnapshotState, 100) //创建一个cap为100的*SnapshotState类型的信道
+ 	numSnapshots := 0 //快照数量
 
 	lines := strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' })
+	//按照空格分隔字符串b
 	for _, line := range lines {
 		// Ignore comments
-		if strings.HasPrefix("#", line) {
+		if strings.HasPrefix("#", line) { //判断line是否有前缀字符串"#"
 			continue
 		}
-		parts := strings.Fields(line)
+
+		parts := strings.Fields(line) //按照 空白分隔字符串
 		switch parts[0] {
 		case "send":
-			src := parts[1]
-			dest := parts[2]
-			tokens, err := strconv.Atoi(parts[3])
+			src := parts[1] //源头
+			dest := parts[2] //目的地
+			tokens, err := strconv.Atoi(parts[3]) //字符串转换为整数
 			checkError(err)
 			sim.InjectEvent(PassTokenEvent{src, dest, tokens})
 		case "snapshot":
@@ -107,11 +127,12 @@ func injectEvents(fileName string, sim *Simulator) []*SnapshotState {
 			serverId := parts[1]
 			snapshotId := sim.nextSnapshotId
 			sim.InjectEvent(SnapshotEvent{serverId})
-			go func(id int) {
-				getSnapshots <- sim.CollectSnapshot(id)
+			go func(id int) { //开启 一个协程
+				getSnapshots <- sim.CollectSnapshot(id) //发送SnapshotState 到信道里面
+				log.Printf("getSnapshots 从CollectSnapshot函数获得 %v 快照 \n",getSnapshots)
 			}(snapshotId)
 		case "tick":
-			numTicks := 1
+			numTicks := 1 //默认tick为1
 			if len(parts) > 1 {
 				numTicks, err = strconv.Atoi(parts[1])
 				checkError(err)
@@ -125,17 +146,20 @@ func injectEvents(fileName string, sim *Simulator) []*SnapshotState {
 	}
 
 	// Keep ticking until snapshots complete
+	//如果没收到就一直tick
 	for numSnapshots > 0 {
 		select {
-		case snap := <-getSnapshots:
+		case snap := <- getSnapshots: //v := <-ch  从Channel ch中接收数据，并将数据赋值给v
+
 			snapshots = append(snapshots, snap)
 			numSnapshots--
 		default:
-			sim.Tick()
+			sim.Tick() //tick标记号
 		}
 	}
 
 	// Keep ticking until we're sure that the last message has been delivered
+	//直到收到确认最后一条信息被接收才停止tick
 	for i := 0; i < maxDelay+1; i++ {
 		sim.Tick()
 	}
@@ -143,18 +167,19 @@ func injectEvents(fileName string, sim *Simulator) []*SnapshotState {
 	return snapshots
 }
 
-// Read the state of snapshot from a ".snap" file.
+// Read the state of snapshot from a ".snap" file.(快照状态文件)
 // The expected format of the file is as follows:
 // 	- The first line contains the snapshot ID (e.g. "0")
 // 	- The next N lines contains the server ID and the number of tokens on that server,
 // 	  in the form "[serverId] [numTokens]" (e.g. "N1 0"), one line per server
-// 	- The rest of the lines represent messages exchanged between the servers,
+// 	- The rest（余下） of the lines represent messages exchanged between the servers,
 // 	  in the form "[src] [dest] [message]" (e.g. "N1 N2 token(1)")
+// 读取 .snap 文件
 func readSnapshot(fileName string) *SnapshotState {
-	b, err := ioutil.ReadFile(path.Join(testDir, fileName))
+	b, err := ioutil.ReadFile(path.Join(testDir, fileName)) //读取文件
 	checkError(err)
 	snapshot := SnapshotState{0, make(map[string]int), make([]*SnapshotMessage, 0)}
-	lines := strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' })
+	lines := strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' }) //根据空格分隔每一行
 	for _, line := range lines {
 		// Ignore comments
 		if strings.HasPrefix(line, "#") {
@@ -221,7 +246,7 @@ func messagesString(messages []*SnapshotMessage, prefix string) string {
 	return strings.Join(str, "\n")
 }
 
-// Assert that the two snapshot states are equal.
+// Assert that the two snapshot states are equal.判断两个快照的状态是否相等如果不相等抛出异常
 // If they are not equal, throw an error with a helpful message.
 func assertEqual(expected, actual *SnapshotState) {
 	if expected.id != actual.id {
@@ -288,7 +313,7 @@ func assertEqual(expected, actual *SnapshotState) {
 	}
 }
 
-// Helper function to sort the snapshot states by ID.
+// Helper function to sort the snapshot states by ID.通过id去排序快照的状态
 func sortSnapshots(snaps []*SnapshotState) {
 	sort.Slice(snaps, func(i, j int) bool {
 		s1 := snaps[i]

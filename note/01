@@ -1,0 +1,32 @@
+1, make用于内存分配 信道channel、映射map以及切片slice的内存创建
+   func make(t Type, size ...IntegerType) Type
+1.1 初始化信道
+   channnel := make(chan int,10)
+   make(chan type,cap)type表示通到数据类型，cap表示缓存容量
+1.2 初始化map
+   myMap := make(map[string]int,100)
+1.3 初始化一个切片
+   //创建一个初始元素长度为5的数组切片，元素初始值为0：
+   mySlice1 := make([]int, 5)
+   //创建一个初始元素长度为5的数组切片，元素初始值为0，并预留10个元素的存储空间：
+   mySlice2 := make([]int, 5, 10)
+2.
+    strings.FieldsFunc(string(b), func(r rune) bool { return r == '\n' }) 使用\n来分割字符串b
+    strings.HasPrefix("#", line) { //判断line是否有前缀字符串"#"
+    strings.Fields(line) //按照 空白分隔字符串
+3.
+    strconv转换字符串 Atoi字符串转换为整数
+4.
+    ch <- v    // 发送值v到Channel ch中
+    v := <- ch  // 从Channel ch中接收数据，并将数据赋值给v
+    如果ch的部分是一个函数，没有从信道里接受到数据会形成阻塞
+5. 使用信道需要考虑的一个重点是死锁。
+    当 Go 协程给一个信道发送数据时，
+    照理说会有其他 Go 协程来接收数据。如果没有的话，
+    程序就会在运行时触发 panic，形成死锁
+6 .
+    协程（coroutine）
+    在一个函数调用前加上go关键字，这次调用就会在一个新的goroutine中并发执行。
+    note: 如果这个函数有返回值，那么这个返回值会被丢弃。
+在工程上，有两种最常见的并发通信模型：共享内存和消息
+
