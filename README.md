@@ -13,13 +13,21 @@ Chandy-Lamport分布式快照
 软件
 您将在此目录下找到代码。该代码的组织方式如下：
 
-server.go：分布式算法中的进程
-simulator.go：离散时间仿真器
-logger.go：一个记录器，记录由系统执行的事件（用于调试）
-common.go：服务器，记录器和模拟器中使用的调试标志和常见消息类型
-snapshot_test.go：测试
-syncmap.go：线程安全映射的实现（同步的map）
-queue.go：使用Go中的列表实现的简单队列接口 
-test_common.go：用于测试的辅助函数
-test_data /：测试用例输入和预期结果
+- server.go：分布式算法中的进程
+
+- simulator.go：离散时间仿真器
+
+- logger.go：一个记录器，记录由系统执行的事件（用于调试）
+
+- common.go：服务器，记录器和模拟器中使用的调试标志和常见消息类型
+
+- snapshot_test.go：测试
+
+- syncmap.go：线程安全映射的实现（同步的map）
+
+- queue.go：使用Go中的列表实现的简单队列接口 
+
+- test_common.go：用于测试的辅助函数
+
+- test_data /：测试用例输入和预期结果
 
