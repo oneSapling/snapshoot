@@ -1,4 +1,4 @@
-COS418作业2：Chandy-Lamport分布式快照
+Chandy-Lamport分布式快照
 介绍
 在此分配中，您将为分布式快照实现 Chandy-Lamport算法。
 您的快照算法将在令牌传递系统的顶部实现，类似于precept和Chandy-Lamport论文中介绍的系统。
